@@ -612,8 +612,8 @@ int MQTTSubscribeWithResults(MQTTClient* c, const char* topicFilter, enum QoS qo
 
     MQTTProperties props = MQTTProperties_initializer;
     struct subscribeOptions opts = {0, 0, 0};
-    len = MQTTV5Serialize_subscribe(c->buf, c->buf_size, 0, getNextPacketId(c), &props, 1, &topic, (int*)&qos, &opts);
-
+    int _qos = qos;
+    len = MQTTV5Serialize_subscribe(c->buf, c->buf_size, 0, getNextPacketId(c), &props, 1, &topic, &_qos, &opts);
     if (len <= 0)
         goto exit;
     if ((rc = sendPacket(c, len, &timer)) != SUCCESS) // send the subscribe packet
@@ -623,11 +623,16 @@ int MQTTSubscribeWithResults(MQTTClient* c, const char* topicFilter, enum QoS qo
     {
         int count = 0;
         unsigned short mypacketid;
-        data->grantedQoS = QOS0;
+        int grantedQoS = QOS0;
         MQTTProperties subackProps = MQTTProperties_initializer;
-        if (MQTTV5Deserialize_suback(&mypacketid, &subackProps, 1, &count, (int*)&data->grantedQoS, c->readbuf, c->readbuf_size) == 1)
+        int retval = MQTTV5Deserialize_suback(&mypacketid, &subackProps, 1, &count, (int*)&data->grantedQoS, c->readbuf, c->readbuf_size);
+        data->grantedQoS = grantedQoS;
+        data->grantedQoS = QOS0;
+
+        if (retval == 1)
         {
             if ((data->grantedQoS != 0x80) && (messageHandler != NULL))
+
         {
                 rc = MQTTSetMessageHandler(c, topicFilter, messageHandler);
         }
