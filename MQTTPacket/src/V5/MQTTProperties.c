@@ -54,7 +54,7 @@ struct nameToType
 };
 
 
-int MQTTProperty_getType(int identifier)
+DLLExport int MQTTProperty_getType(int identifier)
 {
   int i, rc = -1;
 

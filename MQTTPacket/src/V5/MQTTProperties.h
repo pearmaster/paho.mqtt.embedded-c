@@ -94,3 +94,10 @@ DLLExport int MQTTProperties_add(MQTTProperties* props, MQTTProperty* prop);
 int MQTTProperties_write(unsigned char** pptr, MQTTProperties* properties);
 
 int MQTTProperties_read(MQTTProperties* properties, unsigned char** pptr, unsigned char* enddata);
+
+/**
+ * @brief MQTTProperty_getType returns the type of the property based on the identifier (key).
+ * @param identifier the `PropertyNames` property identifier.
+ * @return the `PropertyTypes` type of the property
+ */
+DLLExport int MQTTProperty_getType(int identifier);
