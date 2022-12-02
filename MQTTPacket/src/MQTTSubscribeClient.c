@@ -38,7 +38,7 @@ int MQTTSerialize_subscribeLength(int count, MQTTString topicFilters[])
 #endif
 {
 	int i;
-	int len = 2; /* packetid */
+	int32_t len = 2; /* packetid */
 
 	for (i = 0; i < count; ++i)
 		len += 2 + MQTTstrlen(topicFilters[i]) + 1; /* length + topic + req_qos */
@@ -62,7 +62,7 @@ int MQTTSerialize_subscribeLength(int count, MQTTString topicFilters[])
   * @return the length of the serialized data.  <= 0 indicates error
   */
 #if defined(MQTTV5)
-int MQTTSerialize_subscribe(unsigned char* buf, int buflen, unsigned char dup, unsigned short packetid, int count,
+int MQTTSerialize_subscribe(unsigned char* buf, int32_t buflen, unsigned char dup, unsigned short packetid, int count,
 		MQTTString topicFilters[], int requestedQoSs[])
 {
 	/* need to pack requestedQoSs into subscribeOptions */
@@ -78,7 +78,7 @@ int MQTTSerialize_subscribe(unsigned char* buf, int buflen, unsigned char dup, u
 {
 	unsigned char *ptr = buf;
 	MQTTHeader header = {0};
-	int rem_len = 0;
+	int32_t rem_len = 0;
 	int rc = 0;
 	int i = 0;
 
@@ -143,20 +143,20 @@ exit:
   */
 #if defined(MQTTV5)
 int MQTTDeserialize_suback(unsigned short* packetid, int maxcount, int* count, int grantedQoSs[],
-	unsigned char* buf, int buflen)
+	unsigned char* buf, int32_t buflen)
 {
 	return MQTTV5Deserialize_suback(packetid, NULL, maxcount, count, grantedQoSs, buf, buflen);
 }
 
 int MQTTV5Deserialize_suback(unsigned short* packetid, MQTTProperties* properties,
-	  int maxcount, int* count, int* reasonCodes, unsigned char* buf, int buflen)
+	  int maxcount, int* count, int* reasonCodes, unsigned char* buf, int32_t buflen)
 {
 	return MQTTV5Deserialize_subunsuback(SUBACK, packetid, properties,
 		maxcount, count, reasonCodes, buf, buflen);
 }
 
 int MQTTV5Deserialize_subunsuback(int type, unsigned short* packetid, MQTTProperties* properties,
-	  int maxcount, int* count, int* reasonCodes, unsigned char* buf, int buflen)
+	  int maxcount, int* count, int* reasonCodes, unsigned char* buf, int32_t buflen)
 #else
 int MQTTDeserialize_suback(unsigned short* packetid, int maxcount, int* count, int grantedQoSs[],
 	unsigned char* buf, int buflen)
@@ -165,7 +165,7 @@ int MQTTDeserialize_suback(unsigned short* packetid, int maxcount, int* count, i
 	MQTTHeader header = {0};
 	unsigned char* curdata = buf;
 	unsigned char* enddata = NULL;
-	int rc = 0;
+	int32_t rc = 0;
 	int mylen;
 
 	FUNC_ENTRY;
@@ -209,5 +209,5 @@ int MQTTDeserialize_suback(unsigned short* packetid, int maxcount, int* count, i
 	rc = 1;
 exit:
 	FUNC_EXIT_RC(rc);
-	return rc;
+	return (int) rc;
 }

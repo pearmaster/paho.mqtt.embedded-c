@@ -38,23 +38,23 @@
   * @return the length of the serialized data.  <= 0 indicates error
   */
 #if defined(MQTTV5)
-int MQTTDeserialize_unsubscribe(unsigned char* dup, unsigned short* packetid, int maxcount, int* count, MQTTString topicFilters[],
-	unsigned char* buf, int len)
+int32_t MQTTDeserialize_unsubscribe(unsigned char* dup, unsigned short* packetid, int maxcount, int* count, MQTTString topicFilters[],
+	unsigned char* buf, int32_t len)
 {
   return MQTTV5Deserialize_unsubscribe(dup, packetid, NULL, maxcount, count, topicFilters, buf, len);
 }
 
 DLLExport int MQTTV5Deserialize_unsubscribe(unsigned char* dup, unsigned short* packetid, MQTTProperties* properties,
-	int maxcount, int* count, MQTTString topicFilters[], unsigned char* buf, int len)
+	int maxcount, int* count, MQTTString topicFilters[], unsigned char* buf, int32_t len)
 #else
-int MQTTDeserialize_unsubscribe(unsigned char* dup, unsigned short* packetid, int maxcount, int* count, MQTTString topicFilters[],
-	unsigned char* buf, int len)
+int32_t MQTTDeserialize_unsubscribe(unsigned char* dup, unsigned short* packetid, int maxcount, int* count, MQTTString topicFilters[],
+	unsigned char* buf, int32_t len)
 #endif
 {
 	MQTTHeader header = {0};
 	unsigned char* curdata = buf;
 	unsigned char* enddata = NULL;
-	int rc = 0;
+	int32_t rc = 0;
 	int mylen = 0;
 
 	FUNC_ENTRY;
@@ -89,7 +89,7 @@ int MQTTDeserialize_unsubscribe(unsigned char* dup, unsigned short* packetid, in
 	rc = 1;
 exit:
 	FUNC_EXIT_RC(rc);
-	return rc;
+	return (int) rc;
 }
 
 
@@ -101,7 +101,7 @@ exit:
   * @return the length of the serialized data.  <= 0 indicates error
   */
 #if defined(MQTTV5)
-int MQTTSerialize_unsuback(unsigned char* buf, int buflen, unsigned short packetid)
+int MQTTSerialize_unsuback(unsigned char* buf, int32_t buflen, unsigned short packetid)
 {
 	return MQTTV5Serialize_unsuback(buf, buflen, packetid, NULL, 0, NULL);
 }

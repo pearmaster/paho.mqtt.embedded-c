@@ -77,7 +77,7 @@ int MQTTV5Deserialize_connect(MQTTProperties* willProperties, MQTTProperties* co
   * @param len the length in bytes of the data in the supplied buffer
   * @return error code.  1 is success, 0 is failure
   */
-int MQTTDeserialize_connect(MQTTPacket_connectData* data, unsigned char* buf, int len)
+int MQTTDeserialize_connect(MQTTPacket_connectData* data, unsigned char* buf, int32_t len)
 #endif
 {
 	MQTTHeader header = {0};
@@ -161,7 +161,7 @@ exit:
   * @return serialized length, or error if 0
   */
 #if defined(MQTTV5)
-int MQTTSerialize_connack(unsigned char* buf, int buflen, unsigned char connack_rc, unsigned char sessionPresent)
+int MQTTSerialize_connack(unsigned char* buf, int32_t buflen, unsigned char connack_rc, unsigned char sessionPresent)
 {
 	return MQTTV5Serialize_connack(buf, buflen, connack_rc, sessionPresent, NULL);
 }

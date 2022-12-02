@@ -32,13 +32,13 @@
   * @return the length of buffer needed to contain the serialized version of the packet
   */
 #if defined(MQTTV5)
-int MQTTSerialize_unsubscribeLength(int count, MQTTString topicFilters[], MQTTProperties* properties)
+int32_t MQTTSerialize_unsubscribeLength(int count, MQTTString topicFilters[], MQTTProperties* properties)
 #else
-int MQTTSerialize_unsubscribeLength(int count, MQTTString topicFilters[])
+int32_t MQTTSerialize_unsubscribeLength(int count, MQTTString topicFilters[])
 #endif
 {
 	int i;
-	int len = 2; /* packetid */
+	int32_t len = 2; /* packetid */
 
 	for (i = 0; i < count; ++i)
 		len += 2 + MQTTstrlen(topicFilters[i]); /* length + topic*/
@@ -61,13 +61,13 @@ int MQTTSerialize_unsubscribeLength(int count, MQTTString topicFilters[])
   * @return the length of the serialized data.  <= 0 indicates error
   */
 #if defined(MQTTV5)
-int MQTTSerialize_unsubscribe(unsigned char* buf, int buflen, unsigned char dup, unsigned short packetid,
+int32_t MQTTSerialize_unsubscribe(unsigned char* buf, int32_t buflen, unsigned char dup, unsigned short packetid,
 	int count, MQTTString topicFilters[])
 {
 	return MQTTV5Serialize_unsubscribe(buf, buflen, dup, packetid, NULL, count, topicFilters);
 }
 
-int MQTTV5Serialize_unsubscribe(unsigned char* buf, int buflen, unsigned char dup, unsigned short packetid,
+int32_t MQTTV5Serialize_unsubscribe(unsigned char* buf, int32_t buflen, unsigned char dup, unsigned short packetid,
 			MQTTProperties* properties, int count, MQTTString topicFilters[])
 #else
 int MQTTSerialize_unsubscribe(unsigned char* buf, int buflen, unsigned char dup, unsigned short packetid,
@@ -76,7 +76,7 @@ int MQTTSerialize_unsubscribe(unsigned char* buf, int buflen, unsigned char dup,
 {
 	unsigned char *ptr = buf;
 	MQTTHeader header = {0};
-	int rem_len = 0;
+	int32_t rem_len = 0;
 	int rc = -1;
 	int i = 0;
 
@@ -124,7 +124,7 @@ exit:
   * @return error code.  1 is success, 0 is failure
   */
 #if defined(MQTTV5)
-int MQTTDeserialize_unsuback(unsigned short* packetid, unsigned char* buf, int buflen)
+int MQTTDeserialize_unsuback(unsigned short* packetid, unsigned char* buf, int32_t buflen)
 {
 	return MQTTV5Deserialize_unsuback(packetid, NULL, 0, 0, NULL, buf, buflen);
 }

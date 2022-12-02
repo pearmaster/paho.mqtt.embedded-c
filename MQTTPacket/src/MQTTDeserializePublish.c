@@ -40,7 +40,7 @@
   */
 #if defined(MQTTV5)
 int MQTTDeserialize_publish(unsigned char* dup, int* qos, unsigned char* retained, unsigned short* packetid, MQTTString* topicName,
-		unsigned char** payload, int* payloadlen, unsigned char* buf, int buflen)
+		unsigned char** payload, int* payloadlen, unsigned char* buf, int32_t buflen)
 {
 	return MQTTV5Deserialize_publish(dup, qos, retained, packetid, topicName, NULL, payload, payloadlen, buf, buflen);
 }
@@ -55,7 +55,7 @@ int MQTTDeserialize_publish(unsigned char* dup, int* qos, unsigned char* retaine
 	MQTTHeader header = {0};
 	unsigned char* curdata = buf;
 	unsigned char* enddata = NULL;
-	int rc = 0;
+	int32_t rc = 0;
 	int mylen = 0;
 
 	FUNC_ENTRY;
@@ -86,7 +86,7 @@ int MQTTDeserialize_publish(unsigned char* dup, int* qos, unsigned char* retaine
 	rc = 1;
 exit:
 	FUNC_EXIT_RC(rc);
-	return rc;
+	return (int) rc;
 }
 
 
@@ -102,9 +102,9 @@ exit:
   */
 #if defined(MQTTV5)
 int MQTTV5Deserialize_ack(unsigned char* packettype, unsigned char* dup, unsigned short* packetid,
-	int* reasonCode, MQTTProperties* properties, unsigned char* buf, int buflen);
+	int32_t* reasonCode, MQTTProperties* properties, unsigned char* buf, int32_t buflen);
 
-int MQTTDeserialize_ack(unsigned char* packettype, unsigned char* dup, unsigned short* packetid, unsigned char* buf, int buflen)
+int MQTTDeserialize_ack(unsigned char* packettype, unsigned char* dup, unsigned short* packetid, unsigned char* buf, int32_t buflen)
 {
 	return MQTTV5Deserialize_ack(packettype, dup, packetid, NULL, NULL, buf, buflen);
 }
@@ -118,7 +118,7 @@ int MQTTDeserialize_ack(unsigned char* packettype, unsigned char* dup, unsigned 
 	MQTTHeader header = {0};
 	unsigned char* curdata = buf;
 	unsigned char* enddata = NULL;
-	int rc = 0;
+	int32_t rc = 0;
 	int mylen;
 
 	FUNC_ENTRY;
@@ -154,5 +154,5 @@ int MQTTDeserialize_ack(unsigned char* packettype, unsigned char* dup, unsigned 
 	rc = 1;
 exit:
 	FUNC_EXIT_RC(rc);
-	return rc;
+	return (int) rc;
 }

@@ -35,12 +35,12 @@
   * @return the length of buffer needed to contain the serialized version of the packet
   */
 #if defined(MQTTV5)
-int MQTTV5Serialize_publishLength(int qos, MQTTString topicName, int payloadlen, MQTTProperties* properties)
+int32_t MQTTV5Serialize_publishLength(int qos, MQTTString topicName, int payloadlen, MQTTProperties* properties)
 #else
-int MQTTSerialize_publishLength(int qos, MQTTString topicName, int payloadlen)
+int32_t MQTTSerialize_publishLength(int qos, MQTTString topicName, int payloadlen)
 #endif
 {
-	int len = 0;
+	int32_t len = 0;
 
 	len += 2 + MQTTstrlen(topicName) + payloadlen;
 	if (qos > 0)
@@ -67,7 +67,7 @@ int MQTTSerialize_publishLength(int qos, MQTTString topicName, int payloadlen)
   * @return the length of the serialized data.  <= 0 indicates error
   */
 #if defined(MQTTV5)
-int MQTTSerialize_publish(unsigned char* buf, int buflen, unsigned char dup, int qos, unsigned char retained, unsigned short packetid,
+int32_t MQTTSerialize_publish(unsigned char* buf, int32_t buflen, unsigned char dup, int qos, unsigned char retained, unsigned short packetid,
 		MQTTString topicName, unsigned char* payload, int payloadlen)
 {
 	MQTTProperties props = MQTTProperties_initializer;
@@ -83,7 +83,7 @@ int MQTTSerialize_publish(unsigned char* buf, int buflen, unsigned char dup, int
 {
 	unsigned char *ptr = buf;
 	MQTTHeader header = {0};
-	int rem_len = 0;
+	int32_t rem_len = 0;
 	int rc = 0;
 
 	FUNC_ENTRY;
@@ -137,10 +137,10 @@ exit:
   * @return serialized length, or error if 0
   */
 #if defined(MQTTV5)
-int MQTTV5Serialize_ack(unsigned char* buf, int buflen, unsigned char packettype, unsigned char dup, unsigned short packetid,
+int MQTTV5Serialize_ack(unsigned char* buf, int32_t buflen, unsigned char packettype, unsigned char dup, unsigned short packetid,
 	int reasonCode, MQTTProperties* properties);
 
-int MQTTSerialize_ack(unsigned char* buf, int buflen, unsigned char packettype, unsigned char dup, unsigned short packetid)
+int MQTTSerialize_ack(unsigned char* buf, int32_t buflen, unsigned char packettype, unsigned char dup, unsigned short packetid)
 {
 	return MQTTV5Serialize_ack(buf, buflen, packettype, dup, packetid, -1, NULL);
 }
@@ -202,7 +202,7 @@ exit:
   * @return serialized length, or error if 0
   */
 #if defined(MQTTV5)
-int MQTTSerialize_puback(unsigned char* buf, int buflen, unsigned short packetid)
+int MQTTSerialize_puback(unsigned char* buf, int32_t buflen, unsigned short packetid)
 {
 	return MQTTV5Serialize_puback(buf, buflen, packetid, -1, NULL);
 }
@@ -257,7 +257,7 @@ int MQTTSerialize_pubrec(unsigned char* buf, int buflen, unsigned short packetid
   * @return serialized length, or error if 0
   */
 #if defined(MQTTV5)
-int MQTTSerialize_pubrel(unsigned char* buf, int buflen, unsigned char dup, unsigned short packetid)
+int MQTTSerialize_pubrel(unsigned char* buf, int32_t buflen, unsigned char dup, unsigned short packetid)
 {
 	return MQTTV5Serialize_pubrel(buf, buflen, dup, packetid, -1, NULL);
 }
@@ -284,7 +284,7 @@ int MQTTSerialize_pubrel(unsigned char* buf, int buflen, unsigned char dup, unsi
   * @return serialized length, or error if 0
   */
 #if defined(MQTTV5)
-int MQTTSerialize_pubcomp(unsigned char* buf, int buflen, unsigned short packetid)
+int MQTTSerialize_pubcomp(unsigned char* buf, int32_t buflen, unsigned short packetid)
 {
 	return MQTTV5Serialize_pubcomp(buf, buflen, packetid, -1, NULL);
 }

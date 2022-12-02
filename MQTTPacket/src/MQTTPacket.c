@@ -20,13 +20,20 @@
 
 #include <string.h>
 
+/* According to https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901011 */
+#define NUM_OF_DIGITS_1 (128)
+#define NUM_OF_DIGITS_2 (16384)
+#define NUM_OF_DIGITS_3 (2097151)
+
 /**
  * Encodes the message length according to the MQTT algorithm
+ *
+ * @note See also https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901011
  * @param buf the buffer into which the encoded data is written
  * @param length the length to be encoded
  * @return the number of bytes written to buffer
  */
-int MQTTPacket_encode(unsigned char* buf, int length)
+int MQTTPacket_encode(unsigned char* buf, int32_t length)
 {
 	int rc = 0;
 
@@ -51,11 +58,11 @@ int MQTTPacket_encode(unsigned char* buf, int length)
  * @param value the decoded length returned
  * @return the number of bytes read from the socket
  */
-int MQTTPacket_decode(int (*getcharfn)(unsigned char*, int), int* value)
+int32_t MQTTPacket_decode(int (*getcharfn)(unsigned char*, int), int* value)
 {
 	unsigned char c;
 	int multiplier = 1;
-	int len = 0;
+	int32_t len = 0;
 #define MAX_NO_OF_REMAINING_LENGTH_BYTES 4
 
 	FUNC_ENTRY;
@@ -81,16 +88,17 @@ exit:
 }
 
 
-int MQTTPacket_VBIlen(int rem_len)
+int32_t MQTTPacket_VBIlen(int32_t rem_len)
 {
 	int rc = 0;
 
-	if (rem_len < 128)
-		rc = 1;
-	else if (rem_len < 16384)
-		rc = 2;
-	else if (rem_len < 2097152)
-		rc = 3;
+	/* now remaining_length field */
+	if (rem_len < NUM_OF_DIGITS_1)
+		rem_len += 1;
+	else if (rem_len < NUM_OF_DIGITS_2)
+		rem_len += 2;
+	else if (rem_len < NUM_OF_DIGITS_3)
+		rem_len += 3;
 	else
 		rc = 4;
   return rc;
@@ -115,7 +123,7 @@ int bufchar(unsigned char* c, int count)
 }
 
 
-int MQTTPacket_decodeBuf(unsigned char* buf, int* value)
+int32_t MQTTPacket_decodeBuf(unsigned char* buf, int* value)
 {
 	bufptr = buf;
 	return MQTTPacket_decode(bufchar, value);
@@ -130,7 +138,7 @@ int MQTTPacket_decodeBuf(unsigned char* buf, int* value)
 int readInt(unsigned char** pptr)
 {
 	unsigned char* ptr = *pptr;
-	int len = 256*(*ptr) + (*(ptr+1));
+	int32_t len = 256*(*ptr) + (*(ptr+1));
 	*pptr += 2;
 	return len;
 }
@@ -182,7 +190,7 @@ void writeInt(unsigned char** pptr, int anInt)
  */
 void writeCString(unsigned char** pptr, const char* string)
 {
-	int len = strlen(string);
+	int32_t len = strlen(string);
 	writeInt(pptr, len);
 	memcpy(*pptr, string, len);
 	*pptr += len;
@@ -284,11 +292,11 @@ int MQTTPacket_equals(MQTTString* a, char* bptr)
  * @return integer MQTT packet type, or -1 on error
  * @note  the whole message must fit into the caller's buffer
  */
-int MQTTPacket_read(unsigned char* buf, int buflen, int (*getfn)(unsigned char*, int))
+int MQTTPacket_read(unsigned char* buf, int32_t buflen, int (*getfn)(unsigned char*, int))
 {
 	int rc = -1;
 	MQTTHeader header = {0};
-	int len = 0;
+	int32_t len = 0;
 	int rem_len = 0;
 
 	/* 1. read the header byte.  This has the packet type in it */
@@ -356,7 +364,7 @@ exit:
  * @return integer MQTT packet type, 0 for call again, or -1 on error
  * @note  the whole message must fit into the caller's buffer
  */
-int MQTTPacket_readnb(unsigned char* buf, int buflen, MQTTTransport *trp)
+int MQTTPacket_readnb(unsigned char* buf, int32_t buflen, MQTTTransport *trp)
 {
 	int rc = -1, frc;
 	MQTTHeader header = {0};

@@ -51,13 +51,13 @@ int MQTTV5Deserialize_subscribe(unsigned char* dup, unsigned short* packetid, MQ
 	  unsigned char* buf, int buflen)
 #else
 int MQTTDeserialize_subscribe(unsigned char* dup, unsigned short* packetid, int maxcount, int* count, MQTTString topicFilters[],
-	int requestedQoSs[], unsigned char* buf, int buflen)
+	int requestedQoSs[], unsigned char* buf, int32_t buflen)
 #endif
 {
 	MQTTHeader header = {0};
 	unsigned char* curdata = buf;
 	unsigned char* enddata = NULL;
-	int rc = -1;
+	int32_t rc = -1;
 	int mylen = 0;
 
 	FUNC_ENTRY;
@@ -99,7 +99,7 @@ int MQTTDeserialize_subscribe(unsigned char* dup, unsigned short* packetid, int 
 	rc = 1;
 exit:
 	FUNC_EXIT_RC(rc);
-	return rc;
+	return (int) rc;
 }
 
 
@@ -113,7 +113,7 @@ exit:
   * @return the length of the serialized data.  <= 0 indicates error
   */
 #if defined(MQTTV5)
-int MQTTSerialize_suback(unsigned char* buf, int buflen, unsigned short packetid, int count, int* grantedQoSs)
+int MQTTSerialize_suback(unsigned char* buf, int32_t buflen, unsigned short packetid, int count, int* grantedQoSs)
 {
 	return MQTTV5Serialize_suback(buf, buflen, packetid, NULL, count, grantedQoSs);
 }
