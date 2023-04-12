@@ -46,6 +46,7 @@
 #include <string.h>
 #include <signal.h>
 
+#ifndef NO_LINUX_TIMER
 typedef struct Timer
 {
 	struct timeval end_time;
@@ -56,7 +57,9 @@ char TimerIsExpired(Timer*);
 void TimerCountdownMS(Timer*, unsigned int);
 void TimerCountdown(Timer*, unsigned int);
 int TimerLeftMS(Timer*);
+#endif // NO_LINUX_TIMER
 
+#ifndef NO_LINUX_NETWORK
 typedef struct Network
 {
 	int my_socket;
@@ -70,5 +73,5 @@ int linux_write(Network*, unsigned char*, int, int);
 DLLExport void NetworkInit(Network*);
 DLLExport int NetworkConnect(Network*, char*, int);
 DLLExport void NetworkDisconnect(Network*);
-
+#endif // NO_LINUX_NETWORK
 #endif
