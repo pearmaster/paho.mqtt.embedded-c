@@ -54,7 +54,13 @@ SYNC_TESTS = ${addprefix ${blddir}/test/,${TEST_FILES_C}}
 
 
 # The names of libraries to be built
+ifeq ($(MQTTV5), 1)
+MQTT_EMBED_LIB_C = paho-embed-mqtt5c
+SOURCE_FILES_C += $(srcdir)/V5/*.c
+HEADERS += $(srcdir)/V5/*.h
+else
 MQTT_EMBED_LIB_C = paho-embed-mqtt3c
+endif
 
 
 # determine current platform
@@ -87,6 +93,10 @@ FLAGS_EXE = -I ${srcdir}  -L ${blddir}
 
 LDFLAGS_C = -shared -Wl,-soname,lib$(MQTT_EMBED_LIB_C).so.${MAJOR_VERSION}
 
+ifeq ($(MQTTV5), 1)
+	CCFLAGS_SO += -DMQTTV5
+endif
+
 all: build
 	
 build: | mkdir ${EMBED_MQTTLIB_C_TARGET} ${SYNC_SAMPLES} ${SYNC_TESTS}
@@ -108,7 +118,7 @@ ${SYNC_SAMPLES}: ${blddir}/samples/%: ${srcdir}/../samples/%.c ${srcdir}/../samp
 
 
 ${EMBED_MQTTLIB_C_TARGET}: ${SOURCE_FILES_C} ${HEADERS_C}
-	${CC} ${CCFLAGS_SO} -o $@ ${SOURCE_FILES_C} ${LDFLAGS_C}
+	${CC} ${CCFLAGS_SO} -o $@ -I${srcdir} ${SOURCE_FILES_C} ${LDFLAGS_C}
 	-ln -s lib$(MQTT_EMBED_LIB_C).so.${VERSION}  ${blddir}/lib$(MQTT_EMBED_LIB_C).so.${MAJOR_VERSION}
 	-ln -s lib$(MQTT_EMBED_LIB_C).so.${MAJOR_VERSION} ${blddir}/lib$(MQTT_EMBED_LIB_C).so
 
@@ -171,6 +181,10 @@ EMBED_MQTTLIB_C_TARGET = ${blddir}/lib${MQTT_EMBED_LIB_C}.so.${VERSION}
 CCFLAGS_SO = -g -fPIC -Os -Wall -fvisibility=hidden -Wno-deprecated-declarations -DUSE_NAMED_SEMAPHORES
 FLAGS_EXE = -I ${srcdir}  -L ${blddir}
 
+ifeq ($(MQTTV5), 1)
+	CCFLAGS_SO += -DMQTTV5
+endif
+
 LDFLAGS_C = -shared -Wl,-install_name,lib$(MQTT_EMBED_LIB_C).so.${MAJOR_VERSION}
 
 all: build
@@ -191,7 +205,7 @@ ${SYNC_SAMPLES}: ${blddir}/samples/%: ${srcdir}/../samples/%.c
 	${CC} -o ${blddir}/samples/${basename ${+F}} $< ${FLAGS_EXE} -l${MQTT_EMBED_LIB_C} 
 
 ${EMBED_MQTTLIB_C_TARGET}: ${SOURCE_FILES_C} ${HEADERS_C}
-	${CC} ${CCFLAGS_SO} -o $@ ${SOURCE_FILES_C} ${LDFLAGS_C}
+	${CC} ${CCFLAGS_SO} -o $@ -I${srcdir} ${SOURCE_FILES_C} ${LDFLAGS_C}
 	-ln -s lib$(MQTT_EMBED_LIB_C).so.${VERSION}  ${blddir}/lib$(MQTT_EMBED_LIB_C).so.${MAJOR_VERSION}
 	-ln -s lib$(MQTT_EMBED_LIB_C).so.${MAJOR_VERSION} ${blddir}/lib$(MQTT_EMBED_LIB_C).so
 
