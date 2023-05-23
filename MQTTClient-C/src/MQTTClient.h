@@ -149,15 +149,22 @@ DLLExport void MQTTClientInit(MQTTClient* client, Network* network, unsigned int
  *  @param options - connect options
  *  @return success code
  */
-DLLExport int MQTTConnectWithResults(MQTTClient* client, MQTTPacket_connectData* options,
-    MQTTConnackData* data);
+DLLExport int MQTTConnectWithResults(MQTTClient* client, MQTTPacket_connectData* options, MQTTConnackData* data
+#ifdef MQTTV5
+  , MQTTProperties* connectProperties, MQTTProperties* willProperties, MQTTProperties* connackProperties
+#endif  
+);
 
 /** MQTT Connect - send an MQTT connect packet down the network and wait for a Connack
  *  The nework object must be connected to the network endpoint before calling this
  *  @param options - connect options
  *  @return success code
  */
-DLLExport int MQTTConnect(MQTTClient* client, MQTTPacket_connectData* options);
+DLLExport int MQTTConnect(MQTTClient* client, MQTTPacket_connectData* options
+#ifdef MQTTV5
+  , MQTTProperties* connectProperties, MQTTProperties* willProperties
+#endif  
+); 
 
 /** MQTT Publish - send an MQTT publish packet and wait for all acks to complete for all QoSs
  *  @param client - the client object to use
@@ -181,7 +188,11 @@ DLLExport int MQTTSetMessageHandler(MQTTClient* c, const char* topicFilter, mess
  *  @param message - the message to send
  *  @return success code
  */
-DLLExport int MQTTSubscribe(MQTTClient* client, const char* topicFilter, enum QoS, messageHandler);
+DLLExport int MQTTSubscribe(MQTTClient* client, const char* topicFilter, enum QoS, messageHandler
+#ifdef MQTTV5
+    , MQTTProperties *subscribeProperties, struct subscribeOptions options[]
+#endif
+);
 
 /** MQTT Subscribe - send an MQTT subscribe packet and wait for suback before returning.
  *  @param client - the client object to use
@@ -190,7 +201,11 @@ DLLExport int MQTTSubscribe(MQTTClient* client, const char* topicFilter, enum Qo
  *  @param data - suback granted QoS returned
  *  @return success code
  */
-DLLExport int MQTTSubscribeWithResults(MQTTClient* client, const char* topicFilter, enum QoS, messageHandler, MQTTSubackData* data);
+DLLExport int MQTTSubscribeWithResults(MQTTClient* client, const char* topicFilter, enum QoS, messageHandler, MQTTSubackData* data
+#ifdef MQTTV5
+       , MQTTProperties *subscribeProperties, struct subscribeOptions options[], MQTTProperties *subackProperties
+#endif
+);
 
 /** MQTT Subscribe - send an MQTT unsubscribe packet and wait for unsuback before returning.
  *  @param client - the client object to use
