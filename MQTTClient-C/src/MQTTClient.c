@@ -410,11 +410,7 @@ int waitfor(MQTTClient* c, int packet_type, Timer* timer)
 
 
 
-int MQTTConnectWithResults(MQTTClient* c, MQTTPacket_connectData* options, MQTTConnackData* data
-#ifdef MQTTV5
-    , MQTTProperties* connectProperties, MQTTProperties* willProperties, MQTTProperties* connackProperties
-#endif
-)
+int MQTTConnectWithResults(MQTTClient* c, MQTTPacket_connectData* options, MQTTConnackData* data)
 {
     Timer connect_timer;
     int rc = FAILURE;
@@ -436,12 +432,7 @@ int MQTTConnectWithResults(MQTTClient* c, MQTTPacket_connectData* options, MQTTC
     c->keepAliveInterval = options->keepAliveInterval;
     c->cleansession = options->cleansession;
     TimerCountdown(&c->last_received, c->keepAliveInterval);
-#ifdef MQTTV5
-    // TODO: use properties here
     if ((len = MQTTSerialize_connect(c->buf, c->buf_size, options)) <= 0)
-#else
-    if ((len = MQTTSerialize_connect(c->buf, c->buf_size, options)) <= 0)
-#endif
         goto exit;
     if ((rc = sendPacket(c, len, &connect_timer)) != SUCCESS)  // send the connect packet
         goto exit; // there was a problem
@@ -451,12 +442,7 @@ int MQTTConnectWithResults(MQTTClient* c, MQTTPacket_connectData* options, MQTTC
     {
         data->rc = 0;
         data->sessionPresent = 0;
-#ifdef MQTTV5
-        // TODO: use properties here
         if (MQTTDeserialize_connack(&data->sessionPresent, &data->rc, c->readbuf, c->readbuf_size) == 1)
-#else
-        if (MQTTDeserialize_connack(&data->sessionPresent, &data->rc, c->readbuf, c->readbuf_size) == 1)
-#endif
             rc = data->rc;
         else
             rc = FAILURE;
@@ -479,19 +465,10 @@ exit:
 }
 
 
-int MQTTConnect(MQTTClient* c, MQTTPacket_connectData* options
-#ifdef MQTTV5
-    , MQTTProperties* connectProperties, MQTTProperties* willProperties
-#endif
-)
+int MQTTConnect(MQTTClient* c, MQTTPacket_connectData* options)
 {
     MQTTConnackData data;
-#ifdef MQTTV5
-    MQTTProperties connackProperties;
-    return MQTTConnectWithResults(c, options, &data, connectProperties, willProperties, &connackProperties);
-#else
     return MQTTConnectWithResults(c, options, &data);
-#endif
 }
 
 
@@ -538,11 +515,7 @@ int MQTTSetMessageHandler(MQTTClient* c, const char* topicFilter, messageHandler
 
 
 int MQTTSubscribeWithResults(MQTTClient* c, const char* topicFilter, enum QoS qos,
-       messageHandler messageHandler, MQTTSubackData* data
-#ifdef MQTTV5
-       , MQTTProperties *subscribeProperties, struct subscribeOptions options[], MQTTProperties *subackProperties
-#endif       
-)
+       messageHandler messageHandler, MQTTSubackData* data)
 {
     int rc = FAILURE;
     Timer timer;
@@ -559,12 +532,7 @@ int MQTTSubscribeWithResults(MQTTClient* c, const char* topicFilter, enum QoS qo
     TimerInit(&timer);
     TimerCountdownMS(&timer, c->command_timeout_ms);
 
-#ifdef MQTTV5
-    len = MQTTV5Serialize_subscribe(c->buf, c->buf_size, 0, getNextPacketId(c),
-            subscribeProperties, 1, &topic, (int*)&qos, options);
-#else
     len = MQTTSerialize_subscribe(c->buf, c->buf_size, 0, getNextPacketId(c), 1, &topic, (int*)&qos);
-#endif
     if (len <= 0)
         goto exit;
     if ((rc = sendPacket(c, len, &timer)) != SUCCESS) // send the subscribe packet
@@ -575,11 +543,7 @@ int MQTTSubscribeWithResults(MQTTClient* c, const char* topicFilter, enum QoS qo
         int count = 0;
         unsigned short mypacketid;
         data->grantedQoS = QOS0;
-#ifdef MQTTV5
-        if (MQTTV5Deserialize_suback(&mypacketid, subackProperties, 1, &count, (int*)&data->grantedQoS, c->readbuf, c->readbuf_size) == 1)
-#else
         if (MQTTDeserialize_suback(&mypacketid, 1, &count, (int*)&data->grantedQoS, c->readbuf, c->readbuf_size) == 1)
-#endif
         {
             if (data->grantedQoS != 0x80)
                 rc = MQTTSetMessageHandler(c, topicFilter, messageHandler);
@@ -599,19 +563,10 @@ exit:
 
 
 int MQTTSubscribe(MQTTClient* c, const char* topicFilter, enum QoS qos,
-       messageHandler messageHandler
-#ifdef MQTTV5
-    , MQTTProperties *subscribeProperties, struct subscribeOptions options[]
-#endif
-)
+       messageHandler messageHandler)
 {
     MQTTSubackData data;
-#ifdef MQTTV5
-    MQTTProperties subackProperties
-    return MQTTSubscribeWithResults(c, topicFilter, qos, messageHandler, &data, subscribeProperties, options, &subackProperties);
-#else
     return MQTTSubscribeWithResults(c, topicFilter, qos, messageHandler, &data);
-#endif
 }
 
 
