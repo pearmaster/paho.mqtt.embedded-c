@@ -35,6 +35,9 @@
 #endif
 
 #include "MQTTPacket.h"
+#if defined(MQTTV5)
+#include "MQTTProperties.h"
+#endif
 
 #if defined(MQTTCLIENT_PLATFORM_HEADER)
 /* The following sequence of macros converts the MQTTCLIENT_PLATFORM_HEADER value
@@ -87,7 +90,7 @@ typedef struct MessageData
 {
     MQTTMessage* message;
     MQTTString* topicName;
-#if defined(MQTTv5)
+#if defined(MQTTV5)
     MQTTProperties* properties;
 #endif
 } MessageData;

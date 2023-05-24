@@ -17,6 +17,11 @@
  *******************************************************************************/
 #include "MQTTClient.h"
 
+#if defined(MQTTV5)
+#include "MQTTV5Connect.h"
+#include "MQTTV5Publish.h"
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
@@ -360,7 +365,7 @@ exit:
     return rc;
 }
 
-
+#if defined(MQTTV5)
 int cycleV5(MQTTClient* c, Timer* timer)
 {
     int len = 0,
@@ -392,7 +397,7 @@ int cycleV5(MQTTClient* c, Timer* timer)
                (unsigned char**)&msg.payload, (int*)&msg.payloadlen, c->readbuf, c->readbuf_size) != 1)
                 goto exit;
             msg.qos = (enum QoS)intQoS;
-            deliverMessage(c, &topicName, &msg);
+            deliverMessage(c, &topicName, &msg, &props);
             if (msg.qos != QOS0)
             {
                 if (msg.qos == QOS1)
