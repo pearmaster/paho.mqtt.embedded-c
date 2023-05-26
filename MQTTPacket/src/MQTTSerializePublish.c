@@ -70,7 +70,8 @@ int MQTTSerialize_publishLength(int qos, MQTTString topicName, int payloadlen)
 int MQTTSerialize_publish(unsigned char* buf, int buflen, unsigned char dup, int qos, unsigned char retained, unsigned short packetid,
 		MQTTString topicName, unsigned char* payload, int payloadlen)
 {
-  return MQTTV5Serialize_publish(buf, buflen, dup, qos, retained, packetid, topicName, NULL, payload, payloadlen);
+	MQTTProperties props = MQTTProperties_initializer;
+  return MQTTV5Serialize_publish(buf, buflen, dup, qos, retained, packetid, topicName, &props, payload, payloadlen);
 }
 
 int MQTTV5Serialize_publish(unsigned char* buf, int buflen, unsigned char dup, int qos, unsigned char retained, unsigned short packetid,

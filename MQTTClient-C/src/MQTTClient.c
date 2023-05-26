@@ -20,6 +20,7 @@
 #if defined(MQTTV5)
 #include "MQTTV5Connect.h"
 #include "MQTTV5Publish.h"
+#include "MQTTV5Subscribe.h"
 #endif
 
 #include <stdio.h>
@@ -540,7 +541,20 @@ int waitfor(MQTTClient* c, int packet_type, Timer* timer)
     return rc;
 }
 
+int waitforV5(MQTTClient* c, int packet_type, Timer* timer)
+{
+    int rc = FAILURE;
 
+    do
+    {
+        if (TimerIsExpired(timer))
+            break; // we timed out
+        rc = cycleV5(c, timer);
+    }
+    while (rc != packet_type && rc >= 0);
+
+    return rc;
+}
 
 
 int MQTTConnectWithResults(MQTTClient* c, MQTTPacket_connectData* options, MQTTConnackData* data)
@@ -635,7 +649,7 @@ int MQTTV5ConnectWithProperties(MQTTClient* c, MQTTPacket_connectData* options, 
         goto exit; // there was a problem
 
     // this will be a blocking call, wait for the connack
-    if (waitfor(c, CONNACK, &connect_timer) == CONNACK)
+    if (waitforV5(c, CONNACK, &connect_timer) == CONNACK)
     {
         data.rc = 0;
         data.sessionPresent = 0;
@@ -722,7 +736,13 @@ int MQTTSubscribeWithResults(MQTTClient* c, const char* topicFilter, enum QoS qo
     TimerInit(&timer);
     TimerCountdownMS(&timer, c->command_timeout_ms);
 
+#if defined(MQTTV5)
+    MQTTProperties props = MQTTProperties_initializer;
+    struct subscribeOptions opts = {0, 0, 0};
+    len = MQTTV5Serialize_subscribe(c->buf, c->buf_size, 0, getNextPacketId(c), &props, 1, &topic, (int*)&qos, &opts);
+#else
     len = MQTTSerialize_subscribe(c->buf, c->buf_size, 0, getNextPacketId(c), 1, &topic, (int*)&qos);
+#endif
     if (len <= 0)
         goto exit;
     if ((rc = sendPacket(c, len, &timer)) != SUCCESS) // send the subscribe packet
@@ -877,8 +897,8 @@ int MQTTV5PublishWithProperties(MQTTClient* c, const char* topicName, MQTTMessag
 #if defined(MQTT_TASK)
 	  MutexLock(&c->mutex);
 #endif
-	  if (!c->isconnected)
-		    goto exit;
+    if (!c->isconnected)
+        goto exit;
 
     TimerInit(&timer);
     TimerCountdownMS(&timer, c->command_timeout_ms);
@@ -907,7 +927,7 @@ int MQTTV5PublishWithProperties(MQTTClient* c, const char* topicName, MQTTMessag
     }
     else if (message->qos == QOS2)
     {
-        if (waitfor(c, PUBCOMP, &timer) == PUBCOMP)
+        if (waitforV5(c, PUBCOMP, &timer) == PUBCOMP)
         {
             unsigned short mypacketid;
             unsigned char dup, type;
@@ -916,7 +936,7 @@ int MQTTV5PublishWithProperties(MQTTClient* c, const char* topicName, MQTTMessag
         }
         else
             rc = FAILURE;
-    }
+        }
 
 exit:
     if (rc == FAILURE)

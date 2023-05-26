@@ -64,7 +64,10 @@ typedef struct
     short integer2;
     int integer4;
     MQTTLenString data;
-    MQTTLenString value; /* for user properties */
+    struct {
+      MQTTLenString key; 
+      MQTTLenString value; 
+    } pair;/* for user properties */
   } value;
 } MQTTProperty;
 
@@ -86,7 +89,7 @@ int MQTTProperties_len(MQTTProperties* props);
  * @param prop
  * @return whether the write succeeded or not, number of bytes written or < 0
  */
-int MQTTProperties_add(MQTTProperties* props, MQTTProperty* prop);
+DLLExport int MQTTProperties_add(MQTTProperties* props, MQTTProperty* prop);
 
 int MQTTProperties_write(unsigned char** pptr, MQTTProperties* properties);
 
