@@ -551,6 +551,7 @@ int waitfor(MQTTClient* c, int packet_type, Timer* timer)
     return rc;
 }
 
+#if defined(MQTTV5)
 int waitforV5(MQTTClient* c, int packet_type, Timer* timer)
 {
     int rc = FAILURE;
@@ -565,7 +566,7 @@ int waitforV5(MQTTClient* c, int packet_type, Timer* timer)
 
     return rc;
 }
-
+#endif
 
 int MQTTConnectWithResults(MQTTClient* c, MQTTPacket_connectData* options, MQTTConnackData* data)
 {
