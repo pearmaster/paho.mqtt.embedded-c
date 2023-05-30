@@ -68,7 +68,11 @@ static int sendPacket(MQTTClient* c, int length, Timer* timer)
 
 
 void MQTTClientInit(MQTTClient* c, Network* network, unsigned int command_timeout_ms,
-		unsigned char* sendbuf, size_t sendbuf_size, unsigned char* readbuf, size_t readbuf_size)
+		unsigned char* sendbuf, size_t sendbuf_size, unsigned char* readbuf, size_t readbuf_size
+#if defined(MQTTV5)
+    , MQTTProperty *property_array, unsigned int property_array_max_size
+#endif        
+)
 {
     int i;
     c->ipstack = network;
@@ -89,6 +93,10 @@ void MQTTClientInit(MQTTClient* c, Network* network, unsigned int command_timeou
     TimerInit(&c->last_received);
 #if defined(MQTT_TASK)
 	  MutexInit(&c->mutex);
+#endif
+#if defined(MQTTV5)
+    c->property_array = property_array;
+    c->property_array_max_size = property_array_max_size;
 #endif
 }
 
@@ -392,6 +400,8 @@ int cycleV5(MQTTClient* c, Timer* timer)
             MQTTString topicName;
             MQTTMessage msg;
             MQTTProperties props;
+            props.array = c->property_array;
+            props.max_count = c->property_array_max_size;
             int intQoS;
             msg.payloadlen = 0; /* this is a size_t, but deserialize publish sets this as int */
             if (MQTTV5Deserialize_publish(&msg.dup, &intQoS, &msg.retained, &msg.id, &topicName, &props,
@@ -753,7 +763,12 @@ int MQTTSubscribeWithResults(MQTTClient* c, const char* topicFilter, enum QoS qo
         int count = 0;
         unsigned short mypacketid;
         data->grantedQoS = QOS0;
+#if defined(MQTTV5)
+        MQTTProperties subackProps = MQTTProperties_initializer;
+        if (MQTTV5Deserialize_suback(&mypacketid, &subackProps, 1, &count, (int*)&data->grantedQoS, c->readbuf, c->readbuf_size) == 1)
+#else
         if (MQTTDeserialize_suback(&mypacketid, 1, &count, (int*)&data->grantedQoS, c->readbuf, c->readbuf_size) == 1)
+#endif
         {
             if (data->grantedQoS != 0x80)
                 rc = MQTTSetMessageHandler(c, topicFilter, messageHandler);

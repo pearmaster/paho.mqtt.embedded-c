@@ -116,6 +116,7 @@ typedef struct MQTTClient
       readbuf_size;
     unsigned char *buf,
       *readbuf;
+
     unsigned int keepAliveInterval;
     char ping_outstanding;
     int isconnected;
@@ -135,9 +136,17 @@ typedef struct MQTTClient
     Mutex mutex;
     Thread thread;
 #endif
+#if defined(MQTTV5)
+    MQTTProperty *property_array;
+    unsigned int property_array_max_size;
+#endif
 } MQTTClient;
 
+#if defined(MQTTV5)
+#define DefaultClient {0, 0, 0, 0, NULL, NULL, 0, 0, 0, NULL, 0}
+#else
 #define DefaultClient {0, 0, 0, 0, NULL, NULL, 0, 0, 0}
+#endif
 
 
 /**
@@ -148,7 +157,11 @@ typedef struct MQTTClient
  * @param
  */
 DLLExport void MQTTClientInit(MQTTClient* client, Network* network, unsigned int command_timeout_ms,
-		unsigned char* sendbuf, size_t sendbuf_size, unsigned char* readbuf, size_t readbuf_size);
+		unsigned char* sendbuf, size_t sendbuf_size, unsigned char* readbuf, size_t readbuf_size
+#if defined(MQTTV5)
+    , MQTTProperty *property_array, unsigned int property_array_max_size
+#endif
+);
 
 /** MQTT Connect - send an MQTT connect packet down the network and wait for a Connack
  *  The nework object must be connected to the network endpoint before calling this
