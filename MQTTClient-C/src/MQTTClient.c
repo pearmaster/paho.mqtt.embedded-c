@@ -196,6 +196,14 @@ static char isTopicMatched(char* topicFilter, MQTTString* topicName)
     return (curn == curn_end) && (*curf == '\0');
 }
 
+char MqttTopicMatchesSubscription(MQTTString *topic, char *subscription)
+{
+    if (topic == NULL || subscription == NULL)
+    {
+        return 0;
+    }
+    return MQTTPacket_equals(topic, subscription) || isTopicMatched(subscription, topic);
+}
 
 int deliverMessage(MQTTClient* c, MQTTString* topicName, MQTTMessage* message
 #if defined(MQTTV5)

@@ -266,6 +266,13 @@ DLLExport int MQTTV5Yield(MQTTClient* client, int time);
  */
 DLLExport int MQTTIsConnected(MQTTClient* client);
 
+/** MqttTopicMatchesSubscription
+ * @param topic an MQTT topic.  For example, from a received message.
+ * @param subscription must be correctly formatted subscription with wildcards.  For example, a '#' must be at the end.
+ * @returns 0 if it wasn't matched.
+*/
+DLLExport char MqttTopicMatchesSubscription(MQTTString *topic, char *subscription);
+
 #if defined(MQTT_TASK)
 /** MQTT start background thread for a client.  After this, MQTTYield should not be called.
 *  @param client - the client object to use
