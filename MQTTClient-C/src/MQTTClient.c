@@ -779,8 +779,10 @@ int MQTTSubscribeWithResults(MQTTClient* c, const char* topicFilter, enum QoS qo
         if (MQTTDeserialize_suback(&mypacketid, 1, &count, (int*)&data->grantedQoS, c->readbuf, c->readbuf_size) == 1)
 #endif
         {
-            if (data->grantedQoS != 0x80)
+            if ((data->grantedQoS != 0x80) && (messageHandler != NULL))
+	    {
                 rc = MQTTSetMessageHandler(c, topicFilter, messageHandler);
+	    }
         }
     }
     else
