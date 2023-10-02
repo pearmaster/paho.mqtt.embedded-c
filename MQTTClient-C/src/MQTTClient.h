@@ -95,7 +95,7 @@ typedef struct MessageData
 #if defined(MQTTV5)
     MQTTProperties* properties;
 #endif
-    MQTTClient* client;
+    struct MQTTClient* client;
 } MessageData;
 
 typedef struct MQTTConnackData
