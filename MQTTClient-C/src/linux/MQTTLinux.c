@@ -17,7 +17,6 @@
 
 #include "MQTTLinux.h"
 
-#ifndef NO_LINUX_TIMER
 void TimerInit(Timer* timer)
 {
 	timer->end_time = (struct timeval){0, 0};
@@ -58,8 +57,8 @@ int TimerLeftMS(Timer* timer)
 	//printf("left %d ms\n", (res.tv_sec < 0) ? 0 : res.tv_sec * 1000 + res.tv_usec / 1000);
 	return (res.tv_sec < 0) ? 0 : res.tv_sec * 1000 + res.tv_usec / 1000;
 }
-#endif // NO_LINUX_TIMER
-#ifndef NO_LINUX_NETWORK
+
+
 int linux_read(Network* n, unsigned char* buffer, int len, int timeout_ms)
 {
 	struct timeval interval = {timeout_ms / 1000, (timeout_ms % 1000) * 1000};
@@ -167,4 +166,3 @@ void NetworkDisconnect(Network* n)
 {
 	close(n->my_socket);
 }
-#endif // NO_LINUX_NETWORK
