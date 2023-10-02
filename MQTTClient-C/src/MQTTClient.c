@@ -30,12 +30,14 @@ static void NewMessageData(MessageData* md, MQTTString* aTopicName, MQTTMessage*
 #if defined(MQTTV5)
         , MQTTProperties* properties
 #endif
+        , MQTTClient *client
 ) {
     md->topicName = aTopicName;
     md->message = aMessage;
 #if defined(MQTTV5)
     md->properties = properties;
 #endif
+    md->client = client;
 }
 
 
@@ -224,9 +226,9 @@ int deliverMessage(MQTTClient* c, MQTTString* topicName, MQTTMessage* message
             {
                 MessageData md;
 #if defined(MQTTV5)
-                NewMessageData(&md, topicName, message, properties);
+                NewMessageData(&md, topicName, message, properties, c);
 #else
-                NewMessageData(&md, topicName, message);
+                NewMessageData(&md, topicName, message, c);
 #endif
                 c->messageHandlers[i].fp(&md);
                 rc = SUCCESS;
@@ -238,9 +240,9 @@ int deliverMessage(MQTTClient* c, MQTTString* topicName, MQTTMessage* message
     {
         MessageData md;
 #if defined(MQTTV5)
-        NewMessageData(&md, topicName, message, properties);
+        NewMessageData(&md, topicName, message, properties, c);
 #else
-        NewMessageData(&md, topicName, message);
+        NewMessageData(&md, topicName, message, c);
 #endif
         c->defaultMessageHandler(&md);
         rc = SUCCESS;

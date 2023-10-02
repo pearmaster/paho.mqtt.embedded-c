@@ -86,6 +86,8 @@ typedef struct MQTTMessage
     size_t payloadlen;
 } MQTTMessage;
 
+struct MQTTClient; // Forward decl
+
 typedef struct MessageData
 {
     MQTTMessage* message;
@@ -93,6 +95,7 @@ typedef struct MessageData
 #if defined(MQTTV5)
     MQTTProperties* properties;
 #endif
+    MQTTClient* client;
 } MessageData;
 
 typedef struct MQTTConnackData
@@ -140,6 +143,7 @@ typedef struct MQTTClient
     MQTTProperty *property_array;
     unsigned int property_array_max_size;
 #endif
+    void *userdata;
 } MQTTClient;
 
 #if defined(MQTTV5)
