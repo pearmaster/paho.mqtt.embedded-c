@@ -83,10 +83,13 @@ typedef struct MQTTMessage
     size_t payloadlen;
 } MQTTMessage;
 
+struct MQTTClient; // Forward declaration
+
 typedef struct MessageData
 {
     MQTTMessage* message;
     MQTTString* topicName;
+    struct MQTTClient* client;
 } MessageData;
 
 typedef struct MQTTConnackData
@@ -129,6 +132,7 @@ typedef struct MQTTClient
     Mutex mutex;
     Thread thread;
 #endif
+    void *userdata;
 } MQTTClient;
 
 #define DefaultClient {0, 0, 0, 0, NULL, NULL, 0, 0, 0}
