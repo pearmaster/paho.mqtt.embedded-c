@@ -228,7 +228,10 @@ int keepalive(MQTTClient* c)
             TimerCountdownMS(&timer, 1000);
             int len = MQTTSerialize_pingreq(c->buf, c->buf_size);
             if (len > 0 && (rc = sendPacket(c, len, &timer)) == SUCCESS) // send the ping packet
+	    {
                 c->ping_outstanding = 1;
+                TimerCountdown(&c->last_received, c->keepAliveInterval); // reset receive timer
+            }
         }
     }
 
@@ -294,8 +297,10 @@ int cycle(MQTTClient* c, Timer* timer)
                     len = MQTTSerialize_ack(c->buf, c->buf_size, PUBREC, 0, msg.id);
                 if (len <= 0)
                     rc = FAILURE;
-                else
+                else {
+                    TimerCountdownMS(timer, c->command_timeout_ms);
                     rc = sendPacket(c, len, timer);
+		}
                 if (rc == FAILURE)
                     goto exit; // there was a problem
             }
@@ -311,8 +316,11 @@ int cycle(MQTTClient* c, Timer* timer)
             else if ((len = MQTTSerialize_ack(c->buf, c->buf_size,
                 (packet_type == PUBREC) ? PUBREL : PUBCOMP, 0, mypacketid)) <= 0)
                 rc = FAILURE;
-            else if ((rc = sendPacket(c, len, timer)) != SUCCESS) // send the PUBREL packet
-                rc = FAILURE; // there was a problem
+            else {
+                TimerCountdownMS(timer, c->command_timeout_ms);
+                if ((rc = sendPacket(c, len, timer)) != SUCCESS) // send the PUBREL packet
+                    rc = FAILURE; // there was a problem
+	    }
             if (rc == FAILURE)
                 goto exit; // there was a problem
             break;
@@ -373,6 +381,8 @@ void MQTTRun(void* parm)
 
 	while (1)
 	{
+		if (!c->isconnected)
+			continue;
 #if defined(MQTT_TASK)
 		MutexLock(&c->mutex);
 #endif
@@ -380,6 +390,7 @@ void MQTTRun(void* parm)
 		cycle(c, &timer);
 #if defined(MQTT_TASK)
 		MutexUnlock(&c->mutex);
+		for (TimerCountdownMS(&timer, 1); !TimerIsExpired(&timer);); /* Give other threads a chance to lock the mutex */
 #endif
 	}
 }
