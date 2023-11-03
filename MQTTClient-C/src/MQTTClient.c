@@ -297,94 +297,6 @@ void MQTTCloseSession(MQTTClient* c)
         MQTTCleanSession(c);
 }
 
-
-int cycle(MQTTClient* c, Timer* timer)
-{
-    int len = 0,
-        rc = SUCCESS;
-
-    int packet_type = readPacket(c, timer);     /* read the socket, see what work is due */
-
-    switch (packet_type)
-    {
-        default:
-            /* no more data to read, unrecoverable. Or read packet fails due to unexpected network error */
-            rc = packet_type;
-            goto exit;
-        case 0: /* timed out reading packet */
-            break;
-        case CONNACK:
-        case PUBACK:
-        case SUBACK:
-        case UNSUBACK:
-            break;
-        case PUBLISH:
-        {
-            MQTTString topicName;
-            MQTTMessage msg;
-            int intQoS;
-            msg.payloadlen = 0; /* this is a size_t, but deserialize publish sets this as int */
-            if (MQTTDeserialize_publish(&msg.dup, &intQoS, &msg.retained, &msg.id, &topicName,
-               (unsigned char**)&msg.payload, (int*)&msg.payloadlen, c->readbuf, c->readbuf_size) != 1)
-                goto exit;
-            msg.qos = (enum QoS)intQoS;
-#if defined(MQTTV5)
-            deliverMessage(c, &topicName, &msg, NULL);
-#else
-            deliverMessage(c, &topicName, &msg);
-#endif
-            if (msg.qos != QOS0)
-            {
-                if (msg.qos == QOS1)
-                    len = MQTTSerialize_ack(c->buf, c->buf_size, PUBACK, 0, msg.id);
-                else if (msg.qos == QOS2)
-                    len = MQTTSerialize_ack(c->buf, c->buf_size, PUBREC, 0, msg.id);
-                if (len <= 0)
-                    rc = FAILURE;
-                else
-                    rc = sendPacket(c, len, timer);
-                if (rc == FAILURE)
-                    goto exit; // there was a problem
-            }
-            break;
-        }
-        case PUBREC:
-        case PUBREL:
-        {
-            unsigned short mypacketid;
-            unsigned char dup, type;
-            if (MQTTDeserialize_ack(&type, &dup, &mypacketid, c->readbuf, c->readbuf_size) != 1)
-                rc = FAILURE;
-            else if ((len = MQTTSerialize_ack(c->buf, c->buf_size,
-                (packet_type == PUBREC) ? PUBREL : PUBCOMP, 0, mypacketid)) <= 0)
-                rc = FAILURE;
-            else if ((rc = sendPacket(c, len, timer)) != SUCCESS) // send the PUBREL packet
-                rc = FAILURE; // there was a problem
-            if (rc == FAILURE)
-                goto exit; // there was a problem
-            break;
-        }
-
-        case PUBCOMP:
-            break;
-        case PINGRESP:
-            c->ping_outstanding = 0;
-            break;
-    }
-
-    if (keepalive(c) != SUCCESS) {
-        //check only keepalive FAILURE status so that previous FAILURE status can be considered as FAULT
-        rc = FAILURE;
-    }
-
-exit:
-    if (rc == SUCCESS)
-        rc = packet_type;
-    else if (c->isconnected)
-        MQTTCloseSession(c);
-    return rc;
-}
-
 #if defined(MQTTV5)
 int cycleV5(MQTTClient* c, Timer* timer)
 {
@@ -491,7 +403,91 @@ int MQTTV5Yield(MQTTClient* c, int timeout_ms)
 
     return rc;
 }
-#endif
+
+#else
+
+int cycle(MQTTClient* c, Timer* timer)
+{
+    int len = 0,
+        rc = SUCCESS;
+
+    int packet_type = readPacket(c, timer);     /* read the socket, see what work is due */
+
+    switch (packet_type)
+    {
+        default:
+            /* no more data to read, unrecoverable. Or read packet fails due to unexpected network error */
+            rc = packet_type;
+            goto exit;
+        case 0: /* timed out reading packet */
+            break;
+        case CONNACK:
+        case PUBACK:
+        case SUBACK:
+        case UNSUBACK:
+            break;
+        case PUBLISH:
+        {
+            MQTTString topicName;
+            MQTTMessage msg;
+            int intQoS;
+            msg.payloadlen = 0; /* this is a size_t, but deserialize publish sets this as int */
+            if (MQTTDeserialize_publish(&msg.dup, &intQoS, &msg.retained, &msg.id, &topicName,
+               (unsigned char**)&msg.payload, (int*)&msg.payloadlen, c->readbuf, c->readbuf_size) != 1)
+                goto exit;
+            msg.qos = (enum QoS)intQoS;
+            deliverMessage(c, &topicName, &msg);
+            if (msg.qos != QOS0)
+            {
+                if (msg.qos == QOS1)
+                    len = MQTTSerialize_ack(c->buf, c->buf_size, PUBACK, 0, msg.id);
+                else if (msg.qos == QOS2)
+                    len = MQTTSerialize_ack(c->buf, c->buf_size, PUBREC, 0, msg.id);
+                if (len <= 0)
+                    rc = FAILURE;
+                else
+                    rc = sendPacket(c, len, timer);
+                if (rc == FAILURE)
+                    goto exit; // there was a problem
+            }
+            break;
+        }
+        case PUBREC:
+        case PUBREL:
+        {
+            unsigned short mypacketid;
+            unsigned char dup, type;
+            if (MQTTDeserialize_ack(&type, &dup, &mypacketid, c->readbuf, c->readbuf_size) != 1)
+                rc = FAILURE;
+            else if ((len = MQTTSerialize_ack(c->buf, c->buf_size,
+                (packet_type == PUBREC) ? PUBREL : PUBCOMP, 0, mypacketid)) <= 0)
+                rc = FAILURE;
+            else if ((rc = sendPacket(c, len, timer)) != SUCCESS) // send the PUBREL packet
+                rc = FAILURE; // there was a problem
+            if (rc == FAILURE)
+                goto exit; // there was a problem
+            break;
+        }
+
+        case PUBCOMP:
+            break;
+        case PINGRESP:
+            c->ping_outstanding = 0;
+            break;
+    }
+
+    if (keepalive(c) != SUCCESS) {
+        //check only keepalive FAILURE status so that previous FAILURE status can be considered as FAULT
+        rc = FAILURE;
+    }
+
+exit:
+    if (rc == SUCCESS)
+        rc = packet_type;
+    else if (c->isconnected)
+        MQTTCloseSession(c);
+    return rc;
+}
 
 int MQTTYield(MQTTClient* c, int timeout_ms)
 {
@@ -512,6 +508,7 @@ int MQTTYield(MQTTClient* c, int timeout_ms)
 
     return rc;
 }
+#endif
 
 int MQTTIsConnected(MQTTClient* client)
 {
@@ -555,7 +552,11 @@ int waitfor(MQTTClient* c, int packet_type, Timer* timer)
     {
         if (TimerIsExpired(timer))
             break; // we timed out
+#if defined(MQTTV5)
+        rc = cycleV5(c, timer);
+#else
         rc = cycle(c, timer);
+#endif
     }
     while (rc != packet_type && rc >= 0);
 
