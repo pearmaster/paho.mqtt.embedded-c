@@ -528,7 +528,11 @@ void MQTTRun(void* parm)
 		MutexLock(&c->mutex);
 #endif
 		TimerCountdownMS(&timer, 500); /* Don't wait too long if no traffic is incoming */
+#if defined(MQTTV5)
+        cycleV5(c, &timer);
+#else
 		cycle(c, &timer);
+#endif
 #if defined(MQTT_TASK)
 		MutexUnlock(&c->mutex);
 #endif
@@ -562,23 +566,6 @@ int waitfor(MQTTClient* c, int packet_type, Timer* timer)
 
     return rc;
 }
-
-#if defined(MQTTV5)
-int waitforV5(MQTTClient* c, int packet_type, Timer* timer)
-{
-    int rc = FAILURE;
-
-    do
-    {
-        if (TimerIsExpired(timer))
-            break; // we timed out
-        rc = cycleV5(c, timer);
-    }
-    while (rc != packet_type && rc >= 0);
-
-    return rc;
-}
-#endif
 
 int MQTTConnectWithResults(MQTTClient* c, MQTTPacket_connectData* options, MQTTConnackData* data)
 {
@@ -672,7 +659,7 @@ int MQTTV5ConnectWithProperties(MQTTClient* c, MQTTPacket_connectData* options, 
         goto exit; // there was a problem
 
     // this will be a blocking call, wait for the connack
-    if (waitforV5(c, CONNACK, &connect_timer) == CONNACK)
+    if (waitfor(c, CONNACK, &connect_timer) == CONNACK)
     {
         data.rc = 0;
         data.sessionPresent = 0;
@@ -957,7 +944,7 @@ int MQTTV5PublishWithProperties(MQTTClient* c, const char* topicName, MQTTMessag
     }
     else if (message->qos == QOS2)
     {
-        if (waitforV5(c, PUBCOMP, &timer) == PUBCOMP)
+        if (waitfor(c, PUBCOMP, &timer) == PUBCOMP)
         {
             unsigned short mypacketid;
             unsigned char dup, type;
