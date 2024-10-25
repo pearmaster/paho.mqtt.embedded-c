@@ -35,9 +35,7 @@
 #endif
 
 #include "MQTTPacket.h"
-#if defined(MQTTV5)
 #include "MQTTProperties.h"
-#endif
 
 #if defined(MQTTCLIENT_PLATFORM_HEADER)
 /* The following sequence of macros converts the MQTTCLIENT_PLATFORM_HEADER value
@@ -64,8 +62,8 @@ enum returnCode { BUFFER_OVERFLOW = -2, FAILURE = -1, SUCCESS = 0 };
  *
 typedef struct Network
 {
-	int (*mqttread)(Network*, unsigned char* read_buffer, int, int);
-	int (*mqttwrite)(Network*, unsigned char* send_buffer, int, int);
+    int (*mqttread)(Network*, unsigned char* read_buffer, int, int);
+    int (*mqttwrite)(Network*, unsigned char* send_buffer, int, int);
 } Network;*/
 
 /* The Timer structure must be defined in the platform specific header,
@@ -92,9 +90,7 @@ typedef struct MessageData
 {
     MQTTMessage* message;
     MQTTString* topicName;
-#if defined(MQTTV5)
     MQTTProperties* properties;
-#endif
     struct MQTTClient* client;
 } MessageData;
 
@@ -139,19 +135,13 @@ typedef struct MQTTClient
     Mutex mutex;
     Thread thread;
 #endif
-#if defined(MQTTV5)
     MQTTProperty *property_array;
     unsigned int property_array_max_size;
-#endif
     void *userdata;
 } MQTTClient;
 
-#if defined(MQTTV5)
-#define DefaultClient {0, 0, 0, 0, NULL, NULL, 0, 0, 0, NULL, 0}
-#else
-#define DefaultClient {0, 0, 0, 0, NULL, NULL, 0, 0, 0}
-#endif
 
+#define DefaultClient {0, 0, 0, 0, NULL, NULL, 0, 0, 0, NULL, 0}
 
 /**
  * Create an MQTT client object
@@ -161,10 +151,8 @@ typedef struct MQTTClient
  * @param
  */
 DLLExport void MQTTClientInit(MQTTClient* client, Network* network, unsigned int command_timeout_ms,
-		unsigned char* sendbuf, size_t sendbuf_size, unsigned char* readbuf, size_t readbuf_size
-#if defined(MQTTV5)
-    , MQTTProperty *property_array, unsigned int property_array_max_size
-#endif
+        unsigned char* sendbuf, size_t sendbuf_size, unsigned char* readbuf, size_t readbuf_size,
+        MQTTProperty *property_array, unsigned int property_array_max_size
 );
 
 /** MQTT Connect - send an MQTT connect packet down the network and wait for a Connack
@@ -182,7 +170,6 @@ DLLExport int MQTTConnectWithResults(MQTTClient* client, MQTTPacket_connectData*
  */
 DLLExport int MQTTConnect(MQTTClient* client, MQTTPacket_connectData* options);
 
-#if defined(MQTTV5)
 /** MQTT Connect - send an MQTT connect packet down the network and wait for a Connack
  *  The nework object must be connected to the network endpoint before calling this
  *  @param options - connect options
@@ -190,7 +177,7 @@ DLLExport int MQTTConnect(MQTTClient* client, MQTTPacket_connectData* options);
  */
 DLLExport int MQTTV5ConnectWithProperties(MQTTClient* client, MQTTPacket_connectData* options,
     MQTTProperties *connectProperties, MQTTProperties *willProperties);
-#endif
+
 
 /** MQTT Publish - send an MQTT publish packet and wait for all acks to complete for all QoSs
  *  @param client - the client object to use
@@ -200,7 +187,6 @@ DLLExport int MQTTV5ConnectWithProperties(MQTTClient* client, MQTTPacket_connect
  */
 DLLExport int MQTTPublish(MQTTClient* client, const char*, MQTTMessage*);
 
-#if defined(MQTTV5)
 /** MQTT Publish - send an MQTT publish packet and wait for all acks to complete for all QoSs
  *  @param client - the client object to use
  *  @param topic - the topic to publish to
@@ -208,7 +194,6 @@ DLLExport int MQTTPublish(MQTTClient* client, const char*, MQTTMessage*);
  *  @return success code
  */
 DLLExport int MQTTV5PublishWithProperties(MQTTClient* client, const char*, MQTTMessage*, MQTTProperties*);
-#endif
 
 /** MQTT SetMessageHandler - set or remove a per topic message handler
  *  @param client - the client object to use
@@ -253,16 +238,7 @@ DLLExport int MQTTDisconnect(MQTTClient* client);
  *  @param time - the time, in milliseconds, to yield for
  *  @return success code
  */
-DLLExport int MQTTYield(MQTTClient* client, int time);
-
-#if defined(MQTTV5)
-/** MQTT Yield - MQTT background
- *  @param client - the client object to use
- *  @param time - the time, in milliseconds, to yield for
- *  @return success code
- */
 DLLExport int MQTTV5Yield(MQTTClient* client, int time);
-#endif
 
 /** MQTT isConnected
  *  @param client - the client object to use
