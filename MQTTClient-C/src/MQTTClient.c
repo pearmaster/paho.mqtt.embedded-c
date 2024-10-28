@@ -435,7 +435,7 @@ int waitfor(MQTTClient* c, int packet_type, Timer* timer)
 
 int MQTTV5ConnectWithProperties(MQTTClient* c, MQTTPacket_connectData* options, MQTTProperties *connectProperties, MQTTProperties *willProperties)
 {
-    return MQTTV5ConnectWithPropertiesAndResults(c, options, connectProperties, willProperties, NULL)
+    return MQTTV5ConnectWithPropertiesAndResults(c, options, connectProperties, willProperties, NULL);
 }
 
 int MQTTV5ConnectWithPropertiesAndResults(MQTTClient* c, MQTTPacket_connectData* options, MQTTProperties *connectProperties, MQTTProperties *willProperties, MQTTConnackData* data)
