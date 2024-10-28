@@ -98,6 +98,7 @@ typedef struct MQTTConnackData
 {
     unsigned char rc;
     unsigned char sessionPresent;
+    MQTTProperties* properties;
 } MQTTConnackData;
 
 typedef struct MQTTSubackData
