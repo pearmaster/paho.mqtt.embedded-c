@@ -433,71 +433,13 @@ int waitfor(MQTTClient* c, int packet_type, Timer* timer)
     return rc;
 }
 
-int MQTTConnectWithResults(MQTTClient* c, MQTTPacket_connectData* options, MQTTConnackData* data)
-{
-    Timer connect_timer;
-    int rc = FAILURE;
-    MQTTPacket_connectData default_options = MQTTPacket_connectData_initializer;
-    int32_t len = 0;
-
-#if defined(MQTT_TASK)
-      MutexLock(&c->mutex);
-#endif
-      if (c->isconnected) /* don't send connect packet again if we are already connected */
-          goto exit;
-
-    TimerInit(&connect_timer);
-    TimerCountdownMS(&connect_timer, c->command_timeout_ms);
-
-    if (options == 0)
-        options = &default_options; /* set default options if none were supplied */
-
-    c->keepAliveInterval = options->keepAliveInterval;
-    c->cleansession = options->cleansession;
-    TimerCountdown(&c->last_received, (c->keepAliveInterval/2));
-    if ((len = MQTTSerialize_connect(c->buf, c->buf_size, options)) <= 0)
-        goto exit;
-    if ((rc = sendPacket(c, len, &connect_timer)) != SUCCESS)  // send the connect packet
-        goto exit; // there was a problem
-
-    // this will be a blocking call, wait for the connack
-    if (waitfor(c, CONNACK, &connect_timer) == CONNACK)
-    {
-        data->rc = 0;
-        data->sessionPresent = 0;
-        if (MQTTDeserialize_connack(&data->sessionPresent, &data->rc, c->readbuf, c->readbuf_size) == 1)
-            rc = data->rc;
-        else
-            rc = FAILURE;
-    }
-    else
-        rc = FAILURE;
-
-exit:
-    if (rc == SUCCESS)
-    {
-        c->isconnected = 1;
-        c->ping_outstanding = 0;
-    }
-
-#if defined(MQTT_TASK)
-      MutexUnlock(&c->mutex);
-#endif
-
-    return rc;
-}
-
-
-int MQTTConnect(MQTTClient* c, MQTTPacket_connectData* options)
-{
-    MQTTConnackData data;
-    return MQTTConnectWithResults(c, options, &data);
-}
-
 int MQTTV5ConnectWithProperties(MQTTClient* c, MQTTPacket_connectData* options, MQTTProperties *connectProperties, MQTTProperties *willProperties)
 {
-    MQTTConnackData data;
+    return MQTTV5ConnectWithPropertiesAndResults(c, options, connectProperties, willProperties, NULL)
+}
 
+int MQTTV5ConnectWithPropertiesAndResults(MQTTClient* c, MQTTPacket_connectData* options, MQTTProperties *connectProperties, MQTTProperties *willProperties, MQTTConnackData* data)
+{
     Timer connect_timer;
     int rc = FAILURE;
     MQTTPacket_connectData default_options = MQTTPacket_connectData_initializer;
@@ -506,35 +448,53 @@ int MQTTV5ConnectWithProperties(MQTTClient* c, MQTTPacket_connectData* options, 
 #if defined(MQTT_TASK)
       MutexLock(&c->mutex);
 #endif
-      if (c->isconnected) /* don't send connect packet again if we are already connected */
-          goto exit;
+    if (c->isconnected)
+    { /* don't send connect packet again if we are already connected */
+        goto exit;
+    }
 
     TimerInit(&connect_timer);
     TimerCountdownMS(&connect_timer, c->command_timeout_ms);
 
-    if (options == 0)
+    if (options == NULL)
+    {
         options = &default_options; /* set default options if none were supplied */
+    }
 
     c->keepAliveInterval = options->keepAliveInterval;
     c->cleansession = options->cleansession;
     TimerCountdown(&c->last_received, (c->keepAliveInterval/2));
     if ((len = MQTTV5Serialize_connect(c->buf, c->buf_size, options, connectProperties, willProperties)) <= 0)
+    {
         goto exit;
+    }
+
     if ((rc = sendPacket(c, len, &connect_timer)) != SUCCESS)  // send the connect packet
+    {
         goto exit; // there was a problem
+    }
 
     // this will be a blocking call, wait for the connack
     if (waitfor(c, CONNACK, &connect_timer) == CONNACK)
     {
-        data.rc = 0;
-        data.sessionPresent = 0;
-        if (MQTTDeserialize_connack(&data.sessionPresent, &data.rc, c->readbuf, c->readbuf_size) == 1)
-            rc = data.rc;
-        else
-            rc = FAILURE;
+        if (data)
+        {
+            data->rc = 0;
+            data->sessionPresent = 0;
+            if (MQTTDeserialize_connack(&(data->sessionPresent), &(data->rc), c->readbuf, c->readbuf_size) == 1)
+            {
+                rc = data->rc;
+            }
+            else
+            {
+                rc = FAILURE;
+            }
+        }
     }
     else
+    {
         rc = FAILURE;
+    }
 
 exit:
     if (rc == SUCCESS)

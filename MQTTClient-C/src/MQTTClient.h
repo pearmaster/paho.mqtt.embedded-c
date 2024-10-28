@@ -155,28 +155,21 @@ DLLExport void MQTTClientInit(MQTTClient* client, Network* network, unsigned int
         MQTTProperty *property_array, unsigned int property_array_max_size
 );
 
-/** MQTT Connect - send an MQTT connect packet down the network and wait for a Connack
- *  The nework object must be connected to the network endpoint before calling this
- *  @param options - connect options
- *  @return success code
- */
-DLLExport int MQTTConnectWithResults(MQTTClient* client, MQTTPacket_connectData* options,
-    MQTTConnackData* data);
-
-/** MQTT Connect - send an MQTT connect packet down the network and wait for a Connack
- *  The nework object must be connected to the network endpoint before calling this
- *  @param options - connect options
- *  @return success code
- */
-DLLExport int MQTTConnect(MQTTClient* client, MQTTPacket_connectData* options);
-
-/** MQTT Connect - send an MQTT connect packet down the network and wait for a Connack
+/** MQTT Connect with Properties- send an MQTT connect packet down the network and wait for a Connack
  *  The nework object must be connected to the network endpoint before calling this
  *  @param options - connect options
  *  @return success code
  */
 DLLExport int MQTTV5ConnectWithProperties(MQTTClient* client, MQTTPacket_connectData* options,
     MQTTProperties *connectProperties, MQTTProperties *willProperties);
+
+/** MQTT Connect With Properties and Result - send an MQTT connect packet down the network and wait for a Connack
+ *  The nework object must be connected to the network endpoint before calling this
+ *  @param options - connect options
+ *  @return success code
+ */
+DLLExport int MQTTV5ConnectWithPropertiesAndResults(MQTTClient* c, MQTTPacket_connectData* options,
+    MQTTProperties *connectProperties, MQTTProperties *willProperties, MQTTConnackData* data);
 
 
 /** MQTT Publish - send an MQTT publish packet and wait for all acks to complete for all QoSs
