@@ -481,7 +481,7 @@ int MQTTV5ConnectWithPropertiesAndResults(MQTTClient* c, MQTTPacket_connectData*
         {
             data->rc = 0;
             data->sessionPresent = 0;
-            if (MQTTV5Deserialize_connack(&(data->properties), &(data->sessionPresent), &(data->rc), c->readbuf, c->readbuf_size) == 1)
+            if (MQTTV5Deserialize_connack(data->properties, &(data->sessionPresent), &(data->rc), c->readbuf, c->readbuf_size) == 1)
             {
                 rc = data->rc;
             }
