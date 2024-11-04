@@ -94,11 +94,11 @@ int32_t MQTTPacket_VBIlen(int32_t rem_len)
 
 	/* now remaining_length field */
 	if (rem_len < NUM_OF_DIGITS_1)
-		rem_len += 1;
+		rc += 1;
 	else if (rem_len < NUM_OF_DIGITS_2)
-		rem_len += 2;
+		rc += 2;
 	else if (rem_len < NUM_OF_DIGITS_3)
-		rem_len += 3;
+		rc += 3;
 	else
 		rc = 4;
   return rc;
