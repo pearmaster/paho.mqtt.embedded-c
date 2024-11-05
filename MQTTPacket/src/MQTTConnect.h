@@ -22,6 +22,10 @@
 
 #include <stdint.h>
 
+#if defined(MQTTV5)
+#include "V5/MQTTProperties.h"
+#endif
+
 enum connack_return_codes
 {
     MQTT_CONNECTION_ACCEPTED = 0,
