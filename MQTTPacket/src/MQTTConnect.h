@@ -148,4 +148,10 @@ DLLExport int MQTTSerialize_disconnect(unsigned char* buf, int32_t buflen);
 DLLExport int MQTTDeserialize_disconnect(unsigned char* buf, int32_t buflen);
 DLLExport int MQTTSerialize_pingreq(unsigned char* buf, int32_t buflen);
 
+#if defined(MQTTV5)
+DLLExport int MQTTSerialize_connectLength(MQTTPacket_connectData* options, MQTTProperties* connectProperties, MQTTProperties* willProperties);
+#else
+DLLExport int MQTTSerialize_connectLength(MQTTPacket_connectData* options);
+#endif
+
 #endif /* MQTTCONNECT_H_ */
