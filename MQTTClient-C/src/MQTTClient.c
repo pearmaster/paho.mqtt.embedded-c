@@ -386,7 +386,7 @@ int MQTTV5Yield(MQTTClient* c, int timeout_ms)
 
 int MQTTIsConnected(MQTTClient* client)
 {
-  return client->isconnected;
+  return (client != NULL) && client->isconnected;
 }
 
 void MQTTRun(void* parm)
@@ -448,7 +448,7 @@ int MQTTV5ConnectWithPropertiesAndResults(MQTTClient* c, MQTTPacket_connectData*
 #if defined(MQTT_TASK)
       MutexLock(&c->mutex);
 #endif
-    if (c->isconnected)
+    if (c == NULL || (c != NULL && c->isconnected))
     { /* don't send connect packet again if we are already connected */
         goto exit;
     }
@@ -564,7 +564,7 @@ int MQTTSubscribeWithResults(MQTTClient* c, const char* topicFilter, enum QoS qo
 #if defined(MQTT_TASK)
       MutexLock(&c->mutex);
 #endif
-      if (!c->isconnected)
+      if (c == NULL || !c->isconnected)
             goto exit;
 
     TimerInit(&timer);
@@ -736,7 +736,7 @@ int MQTTV5PublishWithProperties(MQTTClient* c, const char* topicName, MQTTMessag
 #if defined(MQTT_TASK)
       MutexLock(&c->mutex);
 #endif
-    if (!c->isconnected)
+    if (c == NULL || !c->isconnected)
         goto exit;
 
     TimerInit(&timer);
